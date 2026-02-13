@@ -71,7 +71,7 @@ public abstract class Group extends LogicElement {
 		for(Entry e : ranges) {
 			across = Math.max(across, fm.stringWidth(e.toCircuitString()));
 		}
-		across = across+2*s;
+		across = ((across+2*s)/s)*s; // x/s*s is being used to snap to grid, it is not redundant
 
 		// determine along
 		along = (puts+1)*s;
