@@ -153,22 +153,24 @@ public class Splitter extends Group implements TriProp {
 		// set up
 		int d2 = JLSInfo.pointDiameter/2;
 		int s = JLSInfo.spacing;
+		int s2 = s/2;
 		
+		FontMetrics fm = g.getFontMetrics();
+
+		// draw input and line from it
+		Input input = inputs.get(0);
+		g.setColor(Color.black);
 		if(orientation == JLSInfo.Orientation.RIGHT)
 		{
-			// draw input and line from it
-			Input input = inputs.get(0);
-			g.setColor(Color.black);
 			int ypos = input.getY();
-			g.drawLine(x,ypos,x+s/2,ypos);
+			g.drawLine(x,ypos,x+s2,ypos);
 			input.draw(g);
 		
 			// draw split line
 			g.setColor(Color.BLACK);
-			g.drawLine(x+s/2,y+s,x+s/2,y+height-s);
+			g.drawLine(x+s2,y+s,x+s2,y+height-s);
 		
 			// draw outputs and lines to them
-			FontMetrics fm = g.getFontMetrics();
 			for (Output output : outputs) {
 				output.draw(g);
 				ypos = output.getY();
@@ -176,91 +178,79 @@ public class Splitter extends Group implements TriProp {
 				g.setColor(Color.BLACK);
 				int edge = (int)(x+width-t.getWidth()-d2);
 				g.drawString(output.getName(),edge,(int)(ypos-t.getHeight()/2+fm.getAscent()));
-				g.drawLine(x+s/2,ypos,edge-d2,ypos);
+				g.drawLine(x+s2,ypos,edge-d2,ypos);
 			}
 		}
 		else if(orientation == JLSInfo.Orientation.LEFT)
 		{
-			// draw input and line from it
-			Input input = inputs.get(0);
-			g.setColor(Color.black);
 			int ypos = input.getY();
-			g.drawLine(x+width,ypos,x+width-s/2,ypos);
+			g.drawLine(x+width,ypos,x+width-s2,ypos);
 			input.draw(g);
 			
 			// draw split line
 			g.setColor(Color.BLACK);
-			g.drawLine(x+width-s/2,y+s,x+width-s/2,y+height-s);
+			g.drawLine(x+width-s2,y+s,x+width-s2,y+height-s);
 			
 			// draw outputs and lines to them
-			FontMetrics fm = g.getFontMetrics();
+			int edge = (int)(x+d2);
 			for (Output output : outputs) {
 				output.draw(g);
 				ypos = output.getY();
 				Rectangle2D t = fm.getStringBounds(output.getName(),g);
 				g.setColor(Color.BLACK);
-				int edge = (int)(x+JLSInfo.pointDiameter/2);
 				g.drawString(output.getName(),edge, (int)(ypos-t.getHeight()/2+fm.getAscent()));
-				g.drawLine(x+width-s/2,ypos,(int)(edge+t.getWidth()+d2),ypos);
+				g.drawLine(x+width-s2,ypos,(int)(edge+t.getWidth()+d2),ypos);
 			}
 		}
 		else if(orientation == JLSInfo.Orientation.DOWN)
 		{
+			int xpos = input.getX();
+			g.drawLine(xpos,y+s2,xpos,y);
+			input.draw(g);
+
+			// draw split line
+			g.setColor(Color.BLACK);
+			g.drawLine(x+s,y+s2,x+width-s,y+s2);
+
 			int inum = 0;
-			FontMetrics fm = g.getFontMetrics();
+			int edge = (int)(y+height-d2);
 			for (Output output : outputs) {
 				output.draw(g);
-				int xpos = output.getX();
+				xpos = output.getX();
 				Rectangle2D t = fm.getStringBounds(output.getName(),g);
 				g.setColor(Color.BLACK);
-				int edge = (int)(y+height-JLSInfo.pointDiameter/2);
 				if(inum%2 == 0)
 				{
 					g.drawString(output.getName(),xpos-(int)t.getWidth()/2, (int)(edge-t.getHeight()/2+6));
 				}
-				g.drawLine(xpos,y+s,xpos,(int)(edge-t.getHeight()+d2));
+				g.drawLine(xpos,y+s2,xpos,(int)(edge-t.getHeight()+d2));
 				inum++;
 			}
-			
-			// draw split line
-			g.setColor(Color.BLACK);
-			g.drawLine(x+s,y+s,x+width-s,y+s);
-			
-			// draw output and line to it
-			Input input = inputs.get(0);
-			g.setColor(Color.black);
-			int xpos = input.getX();
-			g.drawLine(xpos,y+s,xpos,y);
-			input.draw(g);
 		}
 		else if(orientation == JLSInfo.Orientation.UP)
 		{
+			int xpos = input.getX();
+			g.drawLine(xpos,y+height-s2,xpos,y+height);
+			input.draw(g);
+
+			// draw split line
+			g.setColor(Color.BLACK);
+			g.drawLine(x+s,y+height-s2,x+width-s,y+height-s2);
+
 			int inum = 0;
-			FontMetrics fm = g.getFontMetrics();
+			int edge = (int)(y+d2);
 			for (Output output : outputs) {
 				output.draw(g);
-				int xpos = output.getX();
+				xpos = output.getX();
 				Rectangle2D t = fm.getStringBounds(output.getName(),g);
 				g.setColor(Color.BLACK);
-				int edge = (int)(y+JLSInfo.pointDiameter/2);
 				if(inum%2 == 0)
 				{
 					g.drawString(output.getName(),xpos-(int)t.getWidth()/2, (int)(edge+t.getHeight()/2+6));
 				}
-				g.drawLine(xpos,y+height-s,xpos,(int)(edge+t.getHeight()+d2));
+				g.drawLine(xpos,y+height-s2,xpos,(int)(edge+t.getHeight()-d2));
 				inum++;
 			}
-			
-			// draw split line
-			g.setColor(Color.BLACK);
-			g.drawLine(x+s,y+height-s,x+width-s,y+height-s);
-			
-			// draw output and line to it
-			Input input = inputs.get(0);
-			g.setColor(Color.black);
-			int xpos = input.getX();
-			g.drawLine(xpos,y+height-s,xpos,y+height);
-			input.draw(g);
 		}
 		
 	} // end of draw method

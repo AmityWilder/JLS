@@ -62,15 +62,28 @@ public abstract class Group extends LogicElement {
 		FontMetrics fm = g.getFontMetrics();
 		int s = JLSInfo.spacing;
 		int puts = ranges.size();
-		// determine width
-		width = 0;
+
+		int across; // from input side to output side
+		int along;  // from output 0 to output n
+
+		// determine across
+		across = 0;
 		for(Entry e : ranges) {
-			width = Math.max(width, fm.stringWidth(e.toCircuitString()));
+			across = Math.max(across, fm.stringWidth(e.toCircuitString()));
 		}
-		width = (width+2*s)/s*s;
+		across = across+2*s;
+
+		// determine along
+		along = (puts+1)*s;
 	
-		// determine height
-		height = (puts+1)*s;
+		if (orientation == JLSInfo.Orientation.LEFT || orientation == JLSInfo.Orientation.RIGHT) {
+			width = across;
+			height = along;
+		}
+		else if (orientation == JLSInfo.Orientation.UP || orientation == JLSInfo.Orientation.DOWN) {
+			width = along;
+			height = across;
+		}
 
 	} // end of init method
 	
@@ -87,12 +100,17 @@ public abstract class Group extends LogicElement {
 		// draw the box if some input or output is unattached
 		boolean doit = false;
 		for (Input input : inputs) {
-			if (!input.isAttached())
+			if (!input.isAttached()) {
 				doit = true;
+				break;
+			}
 		}
-		for (Output output : outputs) {
-			if (!output.isAttached()) {
-				doit = true;
+		if (!doit) {
+			for (Output output : outputs) {
+				if (!output.isAttached()) {
+					doit = true;
+					break;
+				}
 			}
 		}
 		if (doit) {
@@ -458,6 +476,8 @@ public abstract class Group extends LogicElement {
 			down.setHorizontalAlignment(SwingConstants.CENTER);
 			ButtonGroup gr = new ButtonGroup();
 			gr.add(left);
+			gr.add(up);
+			gr.add(down);
 			gr.add(right);
 			window.add(orients);
 			
