@@ -2612,8 +2612,10 @@ public abstract class SimpleEditor extends JPanel {
 								norm = true;
 						}
 					}
-					if(end.isTriState()) tri = true;
-					else norm = true;
+					if (end.isAttached()) {
+						if(end.isTriState()) tri = true;
+						else norm = true;
+					}
 					if(tri && norm) {
 						overlapMessage = "Cannot connect both tri-state and normal wires to a bundle";
 						return false;
