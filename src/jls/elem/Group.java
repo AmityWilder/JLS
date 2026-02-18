@@ -62,15 +62,28 @@ public abstract class Group extends LogicElement {
 		FontMetrics fm = g.getFontMetrics();
 		int s = JLSInfo.spacing;
 		int puts = ranges.size();
-		// determine width
-		width = 0;
+
+		int across; // from input side to output side
+		int along;  // from output 0 to output n
+
+		// determine across
+		across = 0;
 		for(Entry e : ranges) {
-			width = Math.max(width, fm.stringWidth(e.toCircuitString()));
+			across = Math.max(across, fm.stringWidth(e.toCircuitString()));
 		}
-		width = (width+2*s)/s*s;
+		across = ((across+2*s)/s)*s; // x/s*s is being used to snap to grid, it is not redundant
+
+		// determine along
+		along = (puts+1)*s;
 	
-		// determine height
-		height = (puts+1)*s;
+		if (orientation == JLSInfo.Orientation.LEFT || orientation == JLSInfo.Orientation.RIGHT) {
+			width = across;
+			height = along;
+		}
+		else if (orientation == JLSInfo.Orientation.UP || orientation == JLSInfo.Orientation.DOWN) {
+			width = along;
+			height = across;
+		}
 
 	} // end of init method
 	
@@ -87,12 +100,17 @@ public abstract class Group extends LogicElement {
 		// draw the box if some input or output is unattached
 		boolean doit = false;
 		for (Input input : inputs) {
-			if (!input.isAttached())
+			if (!input.isAttached()) {
 				doit = true;
+				break;
+			}
 		}
-		for (Output output : outputs) {
-			if (!output.isAttached()) {
-				doit = true;
+		if (!doit) {
+			for (Output output : outputs) {
+				if (!output.isAttached()) {
+					doit = true;
+					break;
+				}
 			}
 		}
 		if (doit) {
@@ -137,6 +155,14 @@ public abstract class Group extends LogicElement {
 			{
 				orientation = JLSInfo.Orientation.RIGHT;
 			}
+			else if(value.equals("UP"))
+			{
+				orientation = JLSInfo.Orientation.UP;
+			}
+			else if(value.equals("DOWN"))
+			{
+				orientation = JLSInfo.Orientation.DOWN;
+			}
 		} else if(name.equals("noncontig")) {
 			if(value.equals("true")) noncontig = true;
 			else noncontig = false;
@@ -144,6 +170,90 @@ public abstract class Group extends LogicElement {
 			super.setValue(name,value);
 		}
 	} // end of setValue method
+
+	/**
+	 *  This method will rotate the group if it is rotate-able.
+	 * @param direction The direction to rotate
+	 * @param g The current graphics context for use in recalculating size
+	 */
+	public void rotate(JLSInfo.Orientation direction, Graphics g)
+	{
+		if (orientation == JLSInfo.Orientation.LEFT)
+		{
+			if(direction == JLSInfo.Orientation.LEFT)
+			{
+				orientation = JLSInfo.Orientation.DOWN;
+			}
+			else
+			{
+				orientation = JLSInfo.Orientation.UP;
+			}
+		}
+		else if (orientation == JLSInfo.Orientation.RIGHT)
+		{
+			if(direction == JLSInfo.Orientation.LEFT)
+			{
+				orientation = JLSInfo.Orientation.UP;
+			}
+			else
+			{
+				orientation = JLSInfo.Orientation.DOWN;
+			}
+		}
+		else if (orientation == JLSInfo.Orientation.UP)
+		{
+			if(direction == JLSInfo.Orientation.LEFT)
+			{
+				orientation = JLSInfo.Orientation.LEFT;
+			}
+			else
+			{
+				orientation = JLSInfo.Orientation.RIGHT;
+			}
+		}
+		else if (orientation == JLSInfo.Orientation.DOWN)
+		{
+			if(direction == JLSInfo.Orientation.LEFT)
+			{
+				orientation = JLSInfo.Orientation.RIGHT;
+			}
+			else
+			{
+				orientation = JLSInfo.Orientation.LEFT;
+			}
+		}
+		width = 0;
+		height = 0;
+		inputs.clear();
+		outputs.clear();
+		init(g);
+	}
+	
+	/**
+	 * Tells if a group is capable of rotating, can only rotate when inputs or outputs have no attachments.
+	 * @return False if any input or output has a wire attached, True otherwise
+	 */
+	public boolean canRotate()
+	{
+		boolean success = true;
+		for(Input i : inputs)
+		{
+			if(i.isAttached())
+			{
+				success = false;
+				break;
+			}
+		}
+		for(Output o : outputs)
+		{
+			if(o.isAttached())
+			{
+				success = false;
+				break;
+			}
+		}
+		return success;
+	}
 	
 	/**
 	 * This method will flip a group
@@ -158,6 +268,14 @@ public abstract class Group extends LogicElement {
 		else if(orientation == JLSInfo.Orientation.RIGHT)
 		{
 			orientation = JLSInfo.Orientation.LEFT;
+		}
+		else if(orientation == JLSInfo.Orientation.UP)
+		{
+			orientation = JLSInfo.Orientation.DOWN;
+		}
+		else if(orientation == JLSInfo.Orientation.DOWN)
+		{
+			orientation = JLSInfo.Orientation.UP;
 		}
 		inputs.clear();
 		outputs.clear();
@@ -286,6 +404,8 @@ public abstract class Group extends LogicElement {
 		private JRadioButton single = new JRadioButton("Single Bits");
 		private JRadioButton group = new JRadioButton("Group Bits");
 		private JRadioButton left = new JRadioButton("Left");
+		private JRadioButton up = new JRadioButton("up");
+		private JRadioButton down = new JRadioButton("down");
 		private JRadioButton right = new JRadioButton("Right", true);
 		private String type;
 		
@@ -339,14 +459,25 @@ public abstract class Group extends LogicElement {
 			JLabel olbl = new JLabel("Orientation");
 			olbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 			window.add(olbl);
-			JPanel orients = new JPanel(new GridLayout(1,3));
+			JPanel orients = new JPanel(new GridLayout(3,3));
+			
+			orients.add(new JLabel(""));
+			orients.add(up);
+			orients.add(new JLabel(""));
 			orients.add(left);
 			orients.add(new JLabel(""));
 			orients.add(right);
+			orients.add(new JLabel(""));
+			orients.add(down);
+			orients.add(new JLabel(""));
 			left.setHorizontalAlignment(SwingConstants.CENTER);
 			right.setHorizontalAlignment(SwingConstants.CENTER);
+			up.setHorizontalAlignment(SwingConstants.CENTER);
+			down.setHorizontalAlignment(SwingConstants.CENTER);
 			ButtonGroup gr = new ButtonGroup();
 			gr.add(left);
+			gr.add(up);
+			gr.add(down);
 			gr.add(right);
 			window.add(orients);
 			
@@ -435,6 +566,14 @@ public abstract class Group extends LogicElement {
 				else if(right.isSelected())
 				{
 					orientation = JLSInfo.Orientation.RIGHT;
+				}
+				else if (up.isSelected())
+				{
+					orientation = JLSInfo.Orientation.UP;
+				}
+				else
+				{
+					orientation = JLSInfo.Orientation.DOWN;
 				}
 				dispose();
 			}
